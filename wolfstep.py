@@ -13,7 +13,7 @@ everything else should be included in your install
 
 
 
-PADDING = 22 # up down padding from eq sign, edit at your will
+PADDING = 24 # up down padding from eq sign, edit at your will
 BOTTOMCROP = 200 # bottom x pixels for looking for eqsign and final result
 
 
@@ -71,6 +71,9 @@ async def talk(q, encode=False):
             for i in range(len(pods)):
                 print(str(i)+":", pods[i]["title"])
             ini = ''
+            if not pods:
+                print("no pods recieved")
+                exit()
             while inp > len(pods) - 1 or inp < 0:
                     ini = input(":")
                     try:
@@ -79,7 +82,7 @@ async def talk(q, encode=False):
                         print("that's not an integer")
                         continue
             print("selected", pods[inp]["title"])
-            print("alt:", pods[inp]["subpods"][0]["img"]["alt"])
+            print("image alt:", pods[inp]["subpods"][0]["img"]["alt"])
             with open("out-.png", "wb") as file:
                 file.write(base64.b64decode(pods[inp]["subpods"][0]["img"]["data"]))
             print("original recieved data -> out-.png")
@@ -151,15 +154,15 @@ async def talk(q, encode=False):
         with Image.open("out.png") as i:
             row = rows[-1]
             print("taking last one", row)
-            dims[0] = row[0] + row[2]
-            dims[1] = row[1] - PADDING + origsize[1] - BOTTOMCROP
+            dims[0] = max(row[0] + row[2], 0)
+            dims[1] = max(row[1] - PADDING + origsize[1] - BOTTOMCROP, 0)
             dims[2] = i.width
-            dims[3] = min(row[1] + row[3] + PADDING, i.height) + origsize[1] - BOTTOMCROP
+            dims[3] = min(min(row[1] + row[3] + PADDING, i.height) + origsize[1] - BOTTOMCROP, i.height)
             print("cropping to", dims)
             im = i.crop(dims).convert("RGB")
             newd = []
             thisd = []
-            print("darkening...") # for some things visibility, wolfram lightens times for some reason
+            print("darkening...") # for some things visibility, wolfram lightens \times for some reason
             for d in im.getdata():
                 thisd = list(d)
                 if abs(200 - d[0]) < 50:
